@@ -15,12 +15,41 @@ import os
 app = Flask(__name__)
 
 # =============================================================================
-# LIVE EVENTS JSON FILE - Easy real-time editing!
+# SUPABASE CONFIGURATION - Persistent cloud storage!
 # =============================================================================
+# 1. Go to supabase.com and create a free account
+# 2. Create a new project
+# 3. Go to Settings > API and copy your URL and anon key
+# 4. Paste them below:
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")  # e.g., "https://xxxxx.supabase.co"
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")  # Your anon/public key
+
+# Initialize Supabase client
+supabase_client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        from supabase import create_client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("✓ Supabase connected!")
+    except Exception as e:
+        print(f"Supabase connection error: {e}")
+
+# Fallback to local JSON file
 LIVE_EVENTS_FILE = os.path.join(os.path.dirname(__file__), 'live_events.json')
 
 def load_live_events():
-    """Load live events from JSON file."""
+    """Load live events from Supabase or fallback to JSON file."""
+    # Try Supabase first
+    if supabase_client:
+        try:
+            response = supabase_client.table('live_data').select('*').eq('id', 1).execute()
+            if response.data and len(response.data) > 0:
+                return response.data[0].get('data', {"events": [], "announcements": []})
+        except Exception as e:
+            print(f"Supabase read error: {e}")
+    
+    # Fallback to local JSON
     try:
         with open(LIVE_EVENTS_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -28,7 +57,19 @@ def load_live_events():
         return {"events": [], "announcements": []}
 
 def save_live_events(data):
-    """Save live events to JSON file."""
+    """Save live events to Supabase and local JSON file."""
+    # Save to Supabase
+    if supabase_client:
+        try:
+            supabase_client.table('live_data').upsert({
+                'id': 1,
+                'data': data,
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+        except Exception as e:
+            print(f"Supabase write error: {e}")
+    
+    # Also save to local JSON as backup
     with open(LIVE_EVENTS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
