@@ -227,6 +227,91 @@
             cursor: pointer;
         }
         
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 56px;
+            height: 30px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 30px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--success);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Signup Cards */
+        .signup-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .signup-card:hover {
+            box-shadow: 0 2px 8px rgba(26,95,180,0.1);
+        }
+        .signup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+        .signup-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .signup-school {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        .signup-events {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .signup-event-tag {
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .signup-meta {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+        
         /* Mobile Responsive */
         @media (max-width: 768px) {
             body {
@@ -379,6 +464,8 @@
             <div class="tab active" onclick="showSection('events')">📋 Live Events</div>
             <div class="tab" onclick="showSection('schedule')">📅 Schedule (Calendar)</div>
             <div class="tab" onclick="showSection('announcements')">📢 Announcements</div>
+            <div class="tab" onclick="showSection('semifinalists')">🏆 Semifinalists</div>
+            <div class="tab" onclick="showSection('settings')">⚙️ Settings</div>
         </div>
         
         <div class="toolbar">
@@ -411,6 +498,45 @@
                 <button class="btn btn-primary" onclick="addAnnouncement()">➕ Add Announcement</button>
             </div>
             <div id="announcements-list"></div>
+        </div>
+
+        <div id="semifinalists-section" class="section">
+            <div class="toolbar">
+                <button class="btn btn-secondary" onclick="loadSignups()">🔄 Refresh</button>
+                <button class="btn btn-primary" onclick="exportSignups()">📥 Export CSV</button>
+            </div>
+            <div id="signups-list"></div>
+        </div>
+
+        <div id="settings-section" class="section">
+            <div style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 24px; max-width: 600px;">
+                <h2 style="margin-bottom: 20px;">⚙️ Page Visibility Settings</h2>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px;">🏆 Semifinalist Sign-Up Page</div>
+                        <div style="color: var(--text-light); font-size: 13px; margin-top: 4px;">Allow participants to sign up for semifinal presentations</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="semifinalist-toggle" onchange="toggleSemifinalist()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div id="semifinalist-link" style="display: none; background: #ecfdf5; border: 2px solid var(--success); border-radius: 8px; padding: 16px; margin-top: 16px;">
+                    <div style="font-weight: 600; color: var(--success); margin-bottom: 8px;">✓ Page is VISIBLE</div>
+                    <div style="font-size: 14px; color: var(--text-light);">
+                        Public link: <a href="/semifinalists" target="_blank" style="color: var(--accent);">/semifinalists</a>
+                    </div>
+                </div>
+                
+                <div id="semifinalist-hidden" style="background: #fef3c7; border: 2px solid var(--warning); border-radius: 8px; padding: 16px; margin-top: 16px;">
+                    <div style="font-weight: 600; color: var(--warning); margin-bottom: 8px;">⚠️ Page is HIDDEN</div>
+                    <div style="font-size: 14px; color: var(--text-light);">
+                        Visitors will be redirected to the home page.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -449,9 +575,14 @@
     
     <script>
         let eventsData = { events: [], announcements: [] };
+        let settingsData = { semifinalist_signup_visible: false };
+        let signupsData = [];
         
         // Load events on page load
-        document.addEventListener('DOMContentLoaded', loadEvents);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEvents();
+            loadSettings();
+        });
         
         async function loadEvents() {
             try {
@@ -462,6 +593,118 @@
             } catch (err) {
                 console.error('Failed to load events:', err);
             }
+        }
+        
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/admin/settings');
+                settingsData = await response.json();
+                document.getElementById('semifinalist-toggle').checked = settingsData.semifinalist_signup_visible;
+                updateSettingsUI();
+            } catch (err) {
+                console.error('Failed to load settings:', err);
+            }
+        }
+        
+        function updateSettingsUI() {
+            const isVisible = settingsData.semifinalist_signup_visible;
+            document.getElementById('semifinalist-link').style.display = isVisible ? 'block' : 'none';
+            document.getElementById('semifinalist-hidden').style.display = isVisible ? 'none' : 'block';
+        }
+        
+        async function toggleSemifinalist() {
+            settingsData.semifinalist_signup_visible = document.getElementById('semifinalist-toggle').checked;
+            updateSettingsUI();
+            
+            try {
+                await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settingsData)
+                });
+                showSaveIndicator();
+            } catch (err) {
+                console.error('Failed to save settings:', err);
+            }
+        }
+        
+        async function loadSignups() {
+            try {
+                const response = await fetch('/api/admin/semifinalist-signups');
+                signupsData = await response.json();
+                renderSignups();
+            } catch (err) {
+                console.error('Failed to load signups:', err);
+            }
+        }
+        
+        function renderSignups() {
+            const list = document.getElementById('signups-list');
+            if (signupsData.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-light); padding: 20px;">No sign-ups yet.</p>';
+                return;
+            }
+            
+            list.innerHTML = signupsData.map(signup => `
+                <div class="signup-card">
+                    <div class="signup-header">
+                        <div>
+                            <div class="signup-name">${signup.name}</div>
+                            <div class="signup-school">${signup.school}</div>
+                        </div>
+                        <button class="quick-btn" onclick="deleteSignup(${signup.id})" style="color:var(--error)">🗑️</button>
+                    </div>
+                    <div class="signup-events">
+                        ${signup.events.map(e => `<span class="signup-event-tag">${e}</span>`).join('')}
+                    </div>
+                    <div class="signup-meta">
+                        📧 ${signup.email} ${signup.phone ? '• 📞 ' + signup.phone : ''}<br>
+                        🕐 ${new Date(signup.submitted_at).toLocaleString()}
+                        ${signup.notes ? '<br>📝 ' + signup.notes : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function deleteSignup(id) {
+            if (confirm('Delete this sign-up?')) {
+                try {
+                    await fetch(`/api/admin/semifinalist-signups/${id}`, { method: 'DELETE' });
+                    loadSignups();
+                    showSaveIndicator();
+                } catch (err) {
+                    console.error('Failed to delete signup:', err);
+                }
+            }
+        }
+        
+        function exportSignups() {
+            if (signupsData.length === 0) {
+                alert('No sign-ups to export.');
+                return;
+            }
+            
+            const headers = ['ID', 'Name', 'School', 'Email', 'Phone', 'Events', 'Division', 'Notes', 'Submitted At'];
+            const rows = signupsData.map(s => [
+                s.id,
+                s.name,
+                s.school,
+                s.email,
+                s.phone || '',
+                s.events.join('; '),
+                s.division || '',
+                s.notes || '',
+                s.submitted_at
+            ]);
+            
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'semifinalist_signups.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
         
         function renderEvents() {
@@ -669,9 +912,13 @@
             event.target.classList.add('active');
             document.getElementById(section + '-section').classList.add('active');
             
-            // Load schedule when switching to that tab
+            // Load data when switching to relevant tabs
             if (section === 'schedule') {
                 loadSchedule();
+            } else if (section === 'semifinalists') {
+                loadSignups();
+            } else if (section === 'settings') {
+                loadSettings();
             }
         }
         

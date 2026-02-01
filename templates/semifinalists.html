@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semifinalist Sign-Up | TSA Region 11</title>
+    <style>
+        :root {
+            --bg-page: #f0f6fc;
+            --bg-card: #ffffff;
+            --border: #c5d9f0;
+            --text-primary: #1a365d;
+            --text-secondary: #4a6fa5;
+            --accent: #1a5fb4;
+            --accent-hover: #2670c5;
+            --accent-light: #dbeafe;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #dc2626;
+            --shadow: 0 2px 8px rgba(26,95,180,0.12);
+            --shadow-md: 0 4px 12px rgba(26,95,180,0.16);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, #1a5fb4 0%, #2670c5 50%, #1a5fb4 100%);
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-logo { height: 44px; border-radius: 4px; }
+        .nav-title { font-weight: 600; font-size: 18px; }
+
+        .nav-links { display: flex; gap: 8px; }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover { background: rgba(255,255,255,0.15); color: white; }
+        .nav-link.active { background: rgba(255,255,255,0.2); color: white; }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Division Tabs */
+        .division-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .division-tab {
+            padding: 12px 32px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .division-tab:hover { border-color: var(--accent); }
+        .division-tab.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Event Categories */
+        .category-section {
+            margin-bottom: 32px;
+        }
+
+        .category-header {
+            background: var(--accent);
+            color: white;
+            padding: 16px 24px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .events-grid {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .event-card {
+            background: var(--bg-page);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .event-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+
+        .event-card.selected {
+            border-color: var(--success);
+            background: #ecfdf5;
+        }
+
+        .event-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--success);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .event-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .event-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        /* Sign Up Form */
+        .signup-form {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-top: 32px;
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26,95,180,0.1);
+        }
+
+        .selected-events {
+            background: var(--accent-light);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .selected-events-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .selected-events-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .selected-event-tag {
+            background: var(--accent);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selected-event-tag .remove {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .selected-event-tag .remove:hover { opacity: 1; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            background: #ecfdf5;
+            border: 2px solid var(--success);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.active { display: block; }
+
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+
+        .success-text {
+            color: var(--text-secondary);
+        }
+
+        .division-content { display: none; }
+        .division-content.active { display: block; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .page-title { font-size: 24px; }
+            .division-tabs { flex-direction: column; }
+            .division-tab { text-align: center; }
+            .form-row { grid-template-columns: 1fr; }
+            .events-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <span class="nav-title">TSA Region 11</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/schedule" class="nav-link">Schedule</a>
+                <a href="/live" class="nav-link">Live Updates</a>
+                <a href="/semifinalists" class="nav-link active">Semifinalists</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">🏆 Semifinalist Sign-Up</h1>
+            <p class="page-subtitle">Congratulations on making it to the semifinals! Please sign up for your semifinal presentation time slot below.</p>
+        </div>
+
+        <div class="division-tabs">
+            <div class="division-tab active" onclick="switchDivision('hs')">🎓 High School</div>
+            <div class="division-tab" onclick="switchDivision('ms')">📚 Middle School</div>
+        </div>
+
+        <!-- High School Events -->
+        <div id="hs-content" class="division-content active">
+            {% if events.hs.individual %}
+            <!-- Individual Events -->
+            <div class="category-section">
+                <div class="category-header">👤 Individual Events</div>
+                <div class="events-grid">
+                    {% for event in events.hs.individual %}
+                    <div class="event-card" onclick="toggleEvent(this, 'hs')" data-event="{{ event }}">
+                        <div class="event-name">{{ event }}</div>
+                        <div class="event-type">Individual</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if events.hs.team %}
+            <!-- Team Events -->
+            <div class="category-section">
+                <div class="category-header">👥 Team Events</div>
+                <div class="events-grid">
+                    {% for event in events.hs.team %}
+                    <div class="event-card" onclick="toggleEvent(this, 'hs')" data-event="{{ event }}">
+                        <div class="event-name">{{ event }}</div>
+                        <div class="event-type">Team</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Middle School Events -->
+        <div id="ms-content" class="division-content">
+            {% if events.ms.individual %}
+            <!-- Individual Events -->
+            <div class="category-section">
+                <div class="category-header">👤 Individual Events</div>
+                <div class="events-grid">
+                    {% for event in events.ms.individual %}
+                    <div class="event-card" onclick="toggleEvent(this, 'ms')" data-event="{{ event }}">
+                        <div class="event-name">{{ event }}</div>
+                        <div class="event-type">Individual</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if events.ms.team %}
+            <!-- Team Events -->
+            <div class="category-section">
+                <div class="category-header">👥 Team Events</div>
+                <div class="events-grid">
+                    {% for event in events.ms.team %}
+                    <div class="event-card" onclick="toggleEvent(this, 'ms')" data-event="{{ event }}">
+                        <div class="event-name">{{ event }}</div>
+                        <div class="event-type">Team</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sign Up Form -->
+        <div class="signup-form" id="signup-form">
+            <h2 class="form-title">📝 Sign Up Information</h2>
+            
+            <div class="selected-events" id="selected-events-container" style="display: none;">
+                <div class="selected-events-title">Selected Events:</div>
+                <div class="selected-events-list" id="selected-events-list"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Team/Participant Name *</label>
+                    <input type="text" class="form-input" id="participant-name" placeholder="Enter name(s)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">School *</label>
+                    <input type="text" class="form-input" id="school-name" placeholder="Enter school name">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-input" id="email" placeholder="Enter email address">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone (optional)</label>
+                    <input type="tel" class="form-input" id="phone" placeholder="Enter phone number">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Additional Notes (optional)</label>
+                <input type="text" class="form-input" id="notes" placeholder="Any special requests or notes">
+            </div>
+
+            <button class="btn btn-primary" onclick="submitSignup()" id="submit-btn" disabled>
+                🚀 Submit Sign-Up
+            </button>
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message" id="success-message">
+            <div class="success-icon">🎉</div>
+            <h2 class="success-title">Sign-Up Complete!</h2>
+            <p class="success-text">Your semifinalist sign-up has been submitted successfully. Good luck!</p>
+            <button class="btn btn-primary" onclick="resetForm()" style="margin-top: 20px;">Sign Up for Another Event</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedEvents = { hs: [], ms: [] };
+        let currentDivision = 'hs';
+
+        function switchDivision(division) {
+            currentDivision = division;
+            document.querySelectorAll('.division-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.division-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(division + '-content').classList.add('active');
+            
+            updateSelectedEventsDisplay();
+        }
+
+        function toggleEvent(card, division) {
+            const eventName = card.dataset.event;
+            const index = selectedEvents[division].indexOf(eventName);
+            
+            if (index > -1) {
+                selectedEvents[division].splice(index, 1);
+                card.classList.remove('selected');
+            } else {
+                selectedEvents[division].push(eventName);
+                card.classList.add('selected');
+            }
+            
+            updateSelectedEventsDisplay();
+        }
+
+        function updateSelectedEventsDisplay() {
+            const allSelected = [...selectedEvents.hs, ...selectedEvents.ms];
+            const container = document.getElementById('selected-events-container');
+            const list = document.getElementById('selected-events-list');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (allSelected.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = allSelected.map(event => `
+                    <span class="selected-event-tag">
+                        ${event}
+                        <span class="remove" onclick="removeEvent('${event}')">×</span>
+                    </span>
+                `).join('');
+                submitBtn.disabled = false;
+            } else {
+                container.style.display = 'none';
+                submitBtn.disabled = true;
+            }
+        }
+
+        function removeEvent(eventName) {
+            // Remove from both divisions
+            ['hs', 'ms'].forEach(div => {
+                const index = selectedEvents[div].indexOf(eventName);
+                if (index > -1) {
+                    selectedEvents[div].splice(index, 1);
+                    // Also update the card UI
+                    const card = document.querySelector(`#${div}-content .event-card[data-event="${eventName}"]`);
+                    if (card) card.classList.remove('selected');
+                }
+            });
+            updateSelectedEventsDisplay();
+        }
+
+        async function submitSignup() {
+            const name = document.getElementById('participant-name').value.trim();
+            const school = document.getElementById('school-name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            
+            if (!name || !school || !email) {
+                alert('Please fill in all required fields (Name, School, Email)');
+                return;
+            }
+
+            const allSelected = [...selectedEvents.hs, ...selectedEvents.ms];
+            if (allSelected.length === 0) {
+                alert('Please select at least one event');
+                return;
+            }
+
+            const signupData = {
+                name,
+                school,
+                email,
+                phone,
+                notes,
+                events: allSelected,
+                division: selectedEvents.hs.length > 0 ? 'High School' : 'Middle School',
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('/api/semifinalist-signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(signupData)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('signup-form').style.display = 'none';
+                    document.getElementById('success-message').classList.add('active');
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (err) {
+                console.error('Signup failed:', err);
+                alert('Failed to submit. Please try again.');
+            }
+        }
+
+        function resetForm() {
+            selectedEvents = { hs: [], ms: [] };
+            document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('participant-name').value = '';
+            document.getElementById('school-name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('signup-form').style.display = 'block';
+            document.getElementById('success-message').classList.remove('active');
+            updateSelectedEventsDisplay();
+        }
+    </script>
+</body>
+</html>

@@ -909,6 +909,9 @@
                 <a href="/" class="nav-link {% if page == 'home' %}active{% endif %}">Home</a>
                 <a href="/schedule" class="nav-link {% if page == 'schedule' %}active{% endif %}">Schedule</a>
                 <a href="/live" class="nav-link {% if page == 'live' %}active{% endif %}">Live Events</a>
+                {% if settings and settings.semifinalist_signup_visible %}
+                <a href="/semifinalists" class="nav-link">🏆 Semifinalists</a>
+                {% endif %}
             </div>
         </div>
     </nav>

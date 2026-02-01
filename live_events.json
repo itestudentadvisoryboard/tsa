@@ -92,5 +92,9 @@
       "message": "WiFi: TSA-Guest | Password: Region11!",
       "priority": "normal"
     }
-  ]
+  ],
+  "settings": {
+    "semifinalist_signup_visible": false
+  },
+  "semifinalist_signups": []
 }

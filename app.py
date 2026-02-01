@@ -85,6 +85,90 @@ def save_live_events(data):
 GOOGLE_CALENDAR_ICS_URL = ""  # Paste your ICS URL here
 # Example: "https://calendar.google.com/calendar/ical/your_calendar_id/public/basic.ics"
 
+# =============================================================================
+# SEMIFINALIST EVENTS CONFIGURATION
+# =============================================================================
+# Edit these lists to control which events appear on the semifinalist sign-up page.
+# Remove any events that don't have semifinals at your conference.
+
+SEMIFINAL_EVENTS = {
+    "hs": {  # High School
+        "individual": [
+            "Architectural Design",
+            "Biotechnology Design",
+            "Board Game Design",
+            "CAD Architecture",
+            "CAD Engineering",
+            "Children's Stories",
+            "Coding",
+            "Data Science and Analytics",
+            "Debating Technological Issues",
+            "Engineering Design",
+            "Essays on Technology",
+            "Extemporaneous Speech",
+            "Fashion Design and Technology",
+            "Flight Endurance",
+            "Forensic Science",
+            "Music Production",
+            "Photographic Technology",
+            "Prepared Presentation",
+            "Promotional Design",
+            "Technology Problem Solving",
+        ],
+        "team": [
+            "Animatronics",
+            "Audio Podcasting",
+            "Digital Video Production",
+            "Dragster Design",
+            "Future Technology and Engineering Teacher",
+            "On Demand Video",
+            "Software Development",
+            "Structural Design and Engineering",
+            "System Control Technology",
+            "Technology Bowl",
+            "Video Game Design",
+            "Virtual Reality Visualization (VR)",
+            "Webmaster",
+        ]
+    },
+    "ms": {  # Middle School
+        "individual": [
+            "Biotechnology",
+            "CAD Foundations",
+            "Career Prep",
+            "Challenging Technology Issues",
+            "Chapter Team",
+            "Children's Stories",
+            "Coding",
+            "Community Service Video",
+            "Construction Challenge",
+            "Data Science and Analytics",
+            "Digital Photography",
+            "Dragster",
+            "Essays on Technology",
+            "Flight",
+            "Forensic Technology",
+            "Inventions and Innovations",
+            "Junior Solar Sprint",
+            "Leadership Strategies",
+            "Mass Production",
+            "Mechanical Engineering",
+            "Medical Technology",
+            "Microcontroller Design",
+            "Off the Grid",
+            "Prepared Presentation",
+            "Problem Solving",
+            "Promotional Marketing",
+            "STEM Animation",
+            "Structural Engineering",
+            "Tech Bowl",
+            "Video Game Design",
+            "Website Design",
+        ],
+        "team": []  # Add any MS team events with semifinals here
+    }
+}
+
 # Category keywords - events containing these words get categorized automatically
 CATEGORY_KEYWORDS = {
     "competition": ["competition", "contest", "challenge", "design", "coding", "robotics", "engineering"],
@@ -219,6 +303,19 @@ def get_live_events():
     return data.get('events', [])
 
 
+def get_settings():
+    """Get settings from data file."""
+    data = load_live_events()
+    return data.get('settings', {'semifinalist_signup_visible': False})
+
+
+def save_settings(settings):
+    """Save settings to data file."""
+    data = load_live_events()
+    data['settings'] = settings
+    save_live_events(data)
+
+
 def get_announcements():
     """Get announcements from JSON file."""
     data = load_live_events()
@@ -236,20 +333,102 @@ def get_schedule():
 @app.route('/')
 def home():
     """Render the home page."""
-    return render_template('index.html', page='home')
+    settings = get_settings()
+    return render_template('index.html', page='home', settings=settings)
 
 
 @app.route('/schedule')
 def schedule():
     """Render the full schedule page."""
     schedule_data = get_schedule()
-    return render_template('index.html', page='schedule', schedule=schedule_data)
+    settings = get_settings()
+    return render_template('index.html', page='schedule', schedule=schedule_data, settings=settings)
 
 
 @app.route('/live')
 def live():
     """Render the live events board."""
-    return render_template('index.html', page='live')
+    settings = get_settings()
+    return render_template('index.html', page='live', settings=settings)
+
+
+@app.route('/semifinalists')
+def semifinalists():
+    """Render the semifinalist signup page (if enabled)."""
+    settings = get_settings()
+    if not settings.get('semifinalist_signup_visible', False):
+        return render_template('index.html', page='home', settings=settings)  # Redirect to home if not visible
+    return render_template('semifinalists.html', events=SEMIFINAL_EVENTS)
+
+
+@app.route('/api/semifinalist-signup', methods=['POST'])
+def api_semifinalist_signup():
+    """Handle semifinalist signup submissions."""
+    try:
+        signup_data = request.get_json()
+        if not signup_data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        # Load existing data
+        data = load_live_events()
+        
+        # Initialize semifinalist_signups if not exists
+        if 'semifinalist_signups' not in data:
+            data['semifinalist_signups'] = []
+        
+        # Add ID and timestamp
+        signup_data['id'] = len(data['semifinalist_signups']) + 1
+        signup_data['submitted_at'] = datetime.now().isoformat()
+        
+        # Add to list
+        data['semifinalist_signups'].append(signup_data)
+        save_live_events(data)
+        
+        return jsonify({'success': True, 'message': 'Signup submitted successfully!'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/settings', methods=['GET'])
+def api_admin_get_settings():
+    """Get current settings."""
+    settings = get_settings()
+    return jsonify(settings)
+
+
+@app.route('/api/admin/settings', methods=['POST'])
+def api_admin_save_settings():
+    """Save settings."""
+    try:
+        settings = request.get_json()
+        save_settings(settings)
+        return jsonify({'success': True, 'message': 'Settings saved!'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/semifinalist-signups', methods=['GET'])
+def api_admin_get_signups():
+    """Get all semifinalist signups."""
+    data = load_live_events()
+    return jsonify(data.get('semifinalist_signups', []))
+
+
+@app.route('/api/admin/semifinalist-signups/<int:signup_id>', methods=['DELETE'])
+def api_admin_delete_signup(signup_id):
+    """Delete a semifinalist signup."""
+    try:
+        data = load_live_events()
+        original_length = len(data.get('semifinalist_signups', []))
+        data['semifinalist_signups'] = [s for s in data.get('semifinalist_signups', []) if s.get('id') != signup_id]
+        
+        if len(data.get('semifinalist_signups', [])) == original_length:
+            return jsonify({'success': False, 'error': 'Signup not found'}), 404
+        
+        save_live_events(data)
+        return jsonify({'success': True, 'message': 'Signup deleted!'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/api/live-events')
