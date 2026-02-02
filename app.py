@@ -414,6 +414,12 @@ def api_admin_get_signups():
     return jsonify(data.get('semifinalist_signups', []))
 
 
+@app.route('/api/admin/semifinal-events', methods=['GET'])
+def api_admin_get_semifinal_events():
+    """Get the configured semifinal events list."""
+    return jsonify(SEMIFINAL_EVENTS)
+
+
 @app.route('/api/admin/semifinalist-signups/<int:signup_id>', methods=['DELETE'])
 def api_admin_delete_signup(signup_id):
     """Delete a semifinalist signup."""

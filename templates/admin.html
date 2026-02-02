@@ -227,6 +227,86 @@
             cursor: pointer;
         }
         
+        /* Event Overview Grid for Semifinalists */
+        .events-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        .event-overview-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .event-overview-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(26,95,180,0.15);
+            transform: translateY(-2px);
+        }
+        .event-overview-card .event-info {
+            flex: 1;
+        }
+        .event-overview-card .event-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .event-overview-card .event-type {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+        .event-overview-card .signup-count {
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            min-width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .event-overview-card .signup-count.empty {
+            background: var(--border);
+            color: var(--text-light);
+        }
+        .event-overview-card .signup-count.has-signups {
+            background: var(--success);
+        }
+        
+        /* Division Tabs for Admin */
+        .division-tabs-admin {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .division-tab-admin {
+            padding: 10px 24px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .division-tab-admin:hover {
+            border-color: var(--accent);
+        }
+        .division-tab-admin.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
         /* Toggle Switch */
         .toggle-switch {
             position: relative;
@@ -501,11 +581,36 @@
         </div>
 
         <div id="semifinalists-section" class="section">
-            <div class="toolbar">
-                <button class="btn btn-secondary" onclick="loadSignups()">🔄 Refresh</button>
-                <button class="btn btn-primary" onclick="exportSignups()">📥 Export CSV</button>
+            <!-- Events Overview -->
+            <div id="events-overview">
+                <div class="toolbar">
+                    <button class="btn btn-secondary" onclick="loadSignups()">🔄 Refresh</button>
+                    <button class="btn btn-primary" onclick="exportSignups()">📥 Export All CSV</button>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <div class="division-tabs-admin">
+                        <button class="division-tab-admin active" onclick="switchSignupDivision('hs', this)">🎓 High School</button>
+                        <button class="division-tab-admin" onclick="switchSignupDivision('ms', this)">📚 Middle School</button>
+                    </div>
+                </div>
+                
+                <div id="hs-events-grid" class="events-overview-grid"></div>
+                <div id="ms-events-grid" class="events-overview-grid" style="display: none;"></div>
             </div>
-            <div id="signups-list"></div>
+            
+            <!-- Event Detail View (hidden by default) -->
+            <div id="event-detail-view" style="display: none;">
+                <div class="toolbar">
+                    <button class="btn btn-secondary" onclick="backToEventsOverview()">← Back to Events</button>
+                    <button class="btn btn-primary" onclick="exportEventSignups()">📥 Export Event CSV</button>
+                </div>
+                <div id="event-detail-header" style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                    <h2 id="event-detail-title" style="margin: 0;"></h2>
+                    <p id="event-detail-count" style="color: var(--text-light); margin: 8px 0 0 0;"></p>
+                </div>
+                <div id="event-signups-list"></div>
+            </div>
         </div>
 
         <div id="settings-section" class="section">
@@ -630,22 +735,94 @@
         
         async function loadSignups() {
             try {
-                const response = await fetch('/api/admin/semifinalist-signups');
-                signupsData = await response.json();
-                renderSignups();
+                const [signupsRes, eventsRes] = await Promise.all([
+                    fetch('/api/admin/semifinalist-signups'),
+                    fetch('/api/admin/semifinal-events')
+                ]);
+                signupsData = await signupsRes.json();
+                semifinalEventsData = await eventsRes.json();
+                renderEventsOverview();
             } catch (err) {
                 console.error('Failed to load signups:', err);
             }
         }
         
-        function renderSignups() {
-            const list = document.getElementById('signups-list');
-            if (signupsData.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-light); padding: 20px;">No sign-ups yet.</p>';
+        let semifinalEventsData = { hs: { individual: [], team: [] }, ms: { individual: [], team: [] } };
+        let currentSignupDivision = 'hs';
+        let currentEventView = null;
+        
+        function switchSignupDivision(division, btn) {
+            currentSignupDivision = division;
+            document.querySelectorAll('.division-tab-admin').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.getElementById('hs-events-grid').style.display = division === 'hs' ? 'grid' : 'none';
+            document.getElementById('ms-events-grid').style.display = division === 'ms' ? 'grid' : 'none';
+        }
+        
+        function getSignupCountForEvent(eventName) {
+            return signupsData.filter(s => s.events && s.events.includes(eventName)).length;
+        }
+        
+        function renderEventsOverview() {
+            // Render High School events
+            const hsGrid = document.getElementById('hs-events-grid');
+            const hsEvents = [
+                ...semifinalEventsData.hs.individual.map(e => ({ name: e, type: 'Individual' })),
+                ...semifinalEventsData.hs.team.map(e => ({ name: e, type: 'Team' }))
+            ];
+            
+            hsGrid.innerHTML = hsEvents.map(event => {
+                const count = getSignupCountForEvent(event.name);
+                return `
+                    <div class="event-overview-card" onclick="showEventDetail('${event.name.replace(/'/g, "\\'")}')">
+                        <div class="event-info">
+                            <div class="event-name">${event.name}</div>
+                            <div class="event-type">${event.type}</div>
+                        </div>
+                        <div class="signup-count ${count > 0 ? 'has-signups' : 'empty'}">${count}</div>
+                    </div>
+                `;
+            }).join('') || '<p style="color: var(--text-light); padding: 20px;">No events configured.</p>';
+            
+            // Render Middle School events
+            const msGrid = document.getElementById('ms-events-grid');
+            const msEvents = [
+                ...semifinalEventsData.ms.individual.map(e => ({ name: e, type: 'Individual' })),
+                ...semifinalEventsData.ms.team.map(e => ({ name: e, type: 'Team' }))
+            ];
+            
+            msGrid.innerHTML = msEvents.map(event => {
+                const count = getSignupCountForEvent(event.name);
+                return `
+                    <div class="event-overview-card" onclick="showEventDetail('${event.name.replace(/'/g, "\\'")}')">
+                        <div class="event-info">
+                            <div class="event-name">${event.name}</div>
+                            <div class="event-type">${event.type}</div>
+                        </div>
+                        <div class="signup-count ${count > 0 ? 'has-signups' : 'empty'}">${count}</div>
+                    </div>
+                `;
+            }).join('') || '<p style="color: var(--text-light); padding: 20px;">No events configured.</p>';
+        }
+        
+        function showEventDetail(eventName) {
+            currentEventView = eventName;
+            document.getElementById('events-overview').style.display = 'none';
+            document.getElementById('event-detail-view').style.display = 'block';
+            
+            const eventSignups = signupsData.filter(s => s.events && s.events.includes(eventName));
+            
+            document.getElementById('event-detail-title').textContent = '🏆 ' + eventName;
+            document.getElementById('event-detail-count').textContent = `${eventSignups.length} signup${eventSignups.length !== 1 ? 's' : ''}`;
+            
+            const list = document.getElementById('event-signups-list');
+            if (eventSignups.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-light); padding: 20px; background: var(--card); border-radius: 8px;">No sign-ups for this event yet.</p>';
                 return;
             }
             
-            list.innerHTML = signupsData.map(signup => `
+            list.innerHTML = eventSignups.map(signup => `
                 <div class="signup-card">
                     <div class="signup-header">
                         <div>
@@ -653,9 +830,6 @@
                             <div class="signup-school">${signup.school}</div>
                         </div>
                         <button class="quick-btn" onclick="deleteSignup(${signup.id})" style="color:var(--error)">🗑️</button>
-                    </div>
-                    <div class="signup-events">
-                        ${signup.events.map(e => `<span class="signup-event-tag">${e}</span>`).join('')}
                     </div>
                     <div class="signup-meta">
                         📧 ${signup.email} ${signup.phone ? '• 📞 ' + signup.phone : ''}<br>
@@ -666,11 +840,31 @@
             `).join('');
         }
         
+        function backToEventsOverview() {
+            currentEventView = null;
+            document.getElementById('events-overview').style.display = 'block';
+            document.getElementById('event-detail-view').style.display = 'none';
+            renderEventsOverview();
+        }
+        
+        function renderSignups() {
+            // Legacy function - now handled by renderEventsOverview
+            renderEventsOverview();
+        }
+        
         async function deleteSignup(id) {
             if (confirm('Delete this sign-up?')) {
                 try {
                     await fetch(`/api/admin/semifinalist-signups/${id}`, { method: 'DELETE' });
-                    loadSignups();
+                    // Reload and refresh current view
+                    const response = await fetch('/api/admin/semifinalist-signups');
+                    signupsData = await response.json();
+                    
+                    if (currentEventView) {
+                        showEventDetail(currentEventView);
+                    } else {
+                        renderEventsOverview();
+                    }
                     showSaveIndicator();
                 } catch (err) {
                     console.error('Failed to delete signup:', err);
@@ -703,6 +897,36 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = 'semifinalist_signups.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function exportEventSignups() {
+            if (!currentEventView) return;
+            
+            const eventSignups = signupsData.filter(s => s.events && s.events.includes(currentEventView));
+            if (eventSignups.length === 0) {
+                alert('No sign-ups to export for this event.');
+                return;
+            }
+            
+            const headers = ['ID', 'Name', 'School', 'Email', 'Phone', 'Notes', 'Submitted At'];
+            const rows = eventSignups.map(s => [
+                s.id,
+                s.name,
+                s.school,
+                s.email,
+                s.phone || '',
+                s.notes || '',
+                s.submitted_at
+            ]);
+            
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentEventView.replace(/[^a-z0-9]/gi, '_')}_signups.csv`;
             a.click();
             URL.revokeObjectURL(url);
         }
