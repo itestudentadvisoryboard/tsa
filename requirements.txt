@@ -1,6 +1,2 @@
 flask
-icalendar
-python-dateutil
-requests
 gunicorn
-supabase
