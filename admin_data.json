@@ -1,0 +1,18 @@
+{
+  "semifinalists": {},
+  "overrides": {},
+  "announcements": [
+    {
+      "title": "Schedule",
+      "message": "The official working schedule is vising at this link: https://docs.google.com/spreadsheets/d/1OWA7WL8kD1AFCKpgZdMgAitfkdKULyt4JdqDOIngAdE/edit?usp=sharing\r\n\r\nBoth schedules are subject to change.",
+      "level": "warning",
+      "time": "03:15 PM"
+    },
+    {
+      "title": "Semifinalists Update",
+      "message": "Audio Podcasting & Structural Design and Engineering will NOT have semifinals at this conference.",
+      "level": "info",
+      "time": "02:57 PM"
+    }
+  ]
+}

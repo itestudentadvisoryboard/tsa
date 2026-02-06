@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Region 11 TSA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        .login-container {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            text-align: center;
+        }
+        .login-icon {
+            width: 64px;
+            height: 64px;
+            background: #003a8f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .login-icon i {
+            font-size: 1.6rem;
+            color: white;
+        }
+        .login-card h2 {
+            font-size: 1.4rem;
+            color: #003a8f;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+        .login-card p {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 24px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .login-input:focus {
+            border-color: #003a8f;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #003a8f;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .login-btn:hover {
+            background: #002a6f;
+        }
+        .login-error {
+            background: #ffe0e0;
+            color: #c62828;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: white; }
+    </style>
+</head>
+<body>
+    <section class="hero hero-short">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Admin Access</h1>
+            <p class="hero-school">Region 11 TSA Regionals 2026</p>
+        </div>
+    </section>
+
+    <section class="info-section">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2>Admin Login</h2>
+                <p>Enter the admin password to continue</p>
+
+                {% if error %}
+                <div class="login-error">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="/admin/login">
+                    <input type="password" name="password" class="login-input" placeholder="••••••••••" autofocus required>
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </form>
+            </div>
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Region 11 TSA Regionals 2026</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        .search-bar {
+            max-width: 500px;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 14px 20px 14px 48px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            outline: none;
+        }
+        .search-bar i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1.1rem;
+        }
+        .day-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .day-tab {
+            padding: 10px 28px;
+            border-radius: 50px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .day-tab.active {
+            background: white;
+            color: #003a8f;
+        }
+        .day-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.15);
+        }
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 6px 18px;
+            border-radius: 50px;
+            border: 2px solid rgba(255,255,255,0.4);
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-tab.active {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+            color: white;
+        }
+        .filter-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .day-section { display: none; }
+        .day-section.active { display: block; }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .event-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            transition: transform 0.2s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-4px);
+        }
+        .event-card-header {
+            background: #003a8f;
+            color: white;
+            padding: 16px 20px;
+            position: relative;
+        }
+        .event-card-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            padding-right: 70px;
+        }
+        .event-card-header .room {
+            font-size: 0.8rem;
+            opacity: 0.85;
+        }
+        /* Tag badges */
+        .tag-badges {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .tag-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .tag-ms {
+            background: #1565c0;
+            color: white;
+        }
+        .tag-hs {
+            background: #e65100;
+            color: white;
+        }
+        .tag-nqe {
+            background: #2e7d32;
+            color: white;
+        }
+        .tag-ute {
+            background: #6a1b9a;
+            color: white;
+        }
+        /* Delayed badge */
+        .delayed-badge {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: #e53935;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(229,57,53,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); }
+        }
+        .time-original {
+            text-decoration: line-through;
+            opacity: 0.5;
+            font-size: 0.78rem;
+            margin-left: 8px;
+        }
+        .room-original {
+            text-decoration: line-through;
+            opacity: 0.5;
+            margin-left: 6px;
+            font-size: 0.75rem;
+        }
+        .event-card-body {
+            padding: 12px 20px 16px;
+        }
+        .time-row {
+            display: flex;
+            gap: 12px;
+            padding: 7px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.82rem;
+            align-items: center;
+        }
+        .time-row:last-child { border-bottom: none; }
+        .time-label {
+            font-weight: 700;
+            color: #003a8f;
+            min-width: 110px;
+            white-space: nowrap;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .time-label i {
+            font-size: 0.7rem;
+        }
+        .time-activity {
+            color: #555;
+            line-height: 1.4;
+        }
+        /* Phase row colors */
+        .time-row.phase-setup .time-label {
+            color: #ef6c00;
+        }
+        .time-row.phase-judging .time-label {
+            color: #7b1fa2;
+        }
+        .time-row.phase-semifinal .time-label {
+            color: #c62828;
+        }
+        .phase-emoji {
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            padding: 40px 0;
+            display: none;
+        }
+        .disclaimer {
+            text-align: center;
+            color: #ffd600;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .events-grid { grid-template-columns: 1fr; }
+            .time-label { min-width: 90px; font-size: 0.72rem; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero hero-short">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Event Schedule</h1>
+            <p class="hero-school">February 6–7, 2026</p>
+            <div class="hero-buttons">
+                <a href="/" class="btn btn-white">
+                    <span class="btn-dot btn-dot-blue"></span> Home
+                </a>
+                <a href="/live" class="btn btn-orange">
+                    <span class="btn-dot btn-dot-red"></span> Live Events
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="info-section">
+        <h2 class="section-title">Schedule</h2>
+        <p class="disclaimer">⚠ Schedule is subject to change</p>
+
+        <div class="day-tabs">
+            <button class="day-tab active" onclick="switchDay('friday')">Friday, Feb 6</button>
+            <button class="day-tab" onclick="switchDay('saturday')">Saturday, Feb 7</button>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterType('all')">📋 All</button>
+            <button class="filter-tab" onclick="filterType('ms')">🔵 Middle School</button>
+            <button class="filter-tab" onclick="filterType('hs')">🟠 High School</button>
+            <button class="filter-tab" onclick="filterType('nqe')">🟢 NQE</button>
+            <button class="filter-tab" onclick="filterType('ute')">🟣 UTE</button>
+        </div>
+
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="eventSearch" placeholder="Search events (e.g. Coding, Robotics...)">
+        </div>
+
+        <!-- FRIDAY -->
+        <div class="day-section active" id="friday">
+            <div class="events-grid">
+                {% for event in friday %}
+                <div class="event-card" data-name="{{ event.name|lower }}" data-tags="{{ event.tags|join(' ')|lower }}">
+                    <div class="event-card-header">
+                        {% if event.delayed %}<span class="delayed-badge">Delayed</span>{% endif %}
+                        {% if event.tags %}
+                        <div class="tag-badges">
+                            {% for tag in event.tags %}
+                            <span class="tag-badge tag-{{ tag|lower }}">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <h3>{{ event.name }}</h3>
+                        {% if event.room %}
+                            <span class="room"><i class="fas fa-door-open"></i> {{ event.room }}
+                            {% if event.delayed and event.original_room and event.original_room != event.room %}
+                                <span class="room-original">{{ event.original_room }}</span>
+                            {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="event-card-body">
+                        {% if event.setup_start %}
+                        <div class="time-row phase-setup">
+                            <span class="time-label"><span class="phase-emoji">🔧</span> Setup</span>
+                            <span class="time-activity">{{ event.setup_start }}{% if event.setup_end and event.setup_end != event.setup_start %} – {{ event.setup_end }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                        {% if event.activity_start %}
+                        <div class="time-row">
+                            <span class="time-label"><span class="phase-emoji">🎯</span> Event
+                                {% if event.delayed and event.original_start != event.start %}
+                                    <span class="time-original">{{ event.original_start }}</span>
+                                {% endif %}
+                            </span>
+                            <span class="time-activity">{{ event.activity_start }}{% if event.activity_end and event.activity_end != event.activity_start %} – {{ event.activity_end }}{% endif %}</span>
+                        </div>
+                        {% elif event.start %}
+                        <div class="time-row">
+                            <span class="time-label"><span class="phase-emoji">🎯</span> Start</span>
+                            <span class="time-activity">{{ event.start }}
+                                {% if event.delayed and event.original_start != event.start %}
+                                    <span class="time-original">{{ event.original_start }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="time-row">
+                            <span class="time-label"><span class="phase-emoji">🏁</span> End</span>
+                            <span class="time-activity">{{ event.end }}
+                                {% if event.delayed and event.original_end != event.end %}
+                                    <span class="time-original">{{ event.original_end }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        {% if event.judging_start %}
+                        <div class="time-row phase-judging">
+                            <span class="time-label"><span class="phase-emoji">⚖️</span> Judging</span>
+                            <span class="time-activity">{{ event.judging_start }}{% if event.judging_end and event.judging_end != event.judging_start %} – {{ event.judging_end }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                        {% if event.semi_start %}
+                        <div class="time-row phase-semifinal">
+                            <span class="time-label"><span class="phase-emoji">🏆</span> Semifinalists</span>
+                            <span class="time-activity">{{ event.semi_start }}{% if event.semi_end and event.semi_end != event.semi_start %} – {{ event.semi_end }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- SATURDAY -->
+        <div class="day-section" id="saturday">
+            <div class="events-grid">
+                {% for event in saturday %}
+                <div class="event-card" data-name="{{ event.name|lower }}" data-tags="{{ event.tags|join(' ')|lower }}">
+                    <div class="event-card-header">
+                        {% if event.delayed %}<span class="delayed-badge">Delayed</span>{% endif %}
+                        {% if event.tags %}
+                        <div class="tag-badges">
+                            {% for tag in event.tags %}
+                            <span class="tag-badge tag-{{ tag|lower }}">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <h3>{{ event.name }}</h3>
+                        {% if event.room %}
+                            <span class="room"><i class="fas fa-door-open"></i> {{ event.room }}
+                            {% if event.delayed and event.original_room and event.original_room != event.room %}
+                                <span class="room-original">{{ event.original_room }}</span>
+                            {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="event-card-body">
+                        {% if event.setup_start %}
+                        <div class="time-row phase-setup">
+                            <span class="time-label"><span class="phase-emoji">🔧</span> Setup</span>
+                            <span class="time-activity">{{ event.setup_start }}{% if event.setup_end and event.setup_end != event.setup_start %} – {{ event.setup_end }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                        {% if event.activity_start %}
+                        <div class="time-row">
+                            <span class="time-label"><span class="phase-emoji">🎯</span> Event
+                                {% if event.delayed and event.original_start != event.start %}
+                                    <span class="time-original">{{ event.original_start }}</span>
+                                {% endif %}
+                            </span>
+                            <span class="time-activity">{{ event.activity_start }}{% if event.activity_end and event.activity_end != event.activity_start %} – {{ event.activity_end }}{% endif %}</span>
+                        </div>
+                        {% elif event.start %}
+                        <div class="time-row">
+                            <span class="time-label"><span class="phase-emoji">🎯</span> Start</span>
+                            <span class="time-activity">{{ event.start }}
+                                {% if event.delayed and event.original_start != event.start %}
+                                    <span class="time-original">{{ event.original_start }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="time-row">
+                            <span class="time-label"><span class="phase-emoji">🏁</span> End</span>
+                            <span class="time-activity">{{ event.end }}
+                                {% if event.delayed and event.original_end != event.end %}
+                                    <span class="time-original">{{ event.original_end }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        {% if event.judging_start %}
+                        <div class="time-row phase-judging">
+                            <span class="time-label"><span class="phase-emoji">⚖️</span> Judging</span>
+                            <span class="time-activity">{{ event.judging_start }}{% if event.judging_end and event.judging_end != event.judging_start %} – {{ event.judging_end }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                        {% if event.semi_start %}
+                        <div class="time-row phase-semifinal">
+                            <span class="time-label"><span class="phase-emoji">🏆</span> Semifinalists</span>
+                            <span class="time-activity">{{ event.semi_start }}{% if event.semi_end and event.semi_end != event.semi_start %} – {{ event.semi_end }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <p class="no-results" id="noResults">No events found matching your search.</p>
+    </section>
+
+    <script>
+        let activeFilter = 'all';
+
+        function switchDay(day) {
+            document.querySelectorAll('.day-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(day).classList.add('active');
+            event.target.classList.add('active');
+            document.getElementById('eventSearch').value = '';
+            applyFilters();
+        }
+
+        function filterType(type) {
+            activeFilter = type;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('eventSearch').value.toLowerCase();
+            const activeSection = document.querySelector('.day-section.active');
+            const cards = activeSection.querySelectorAll('.event-card');
+            let visible = 0;
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const tags = card.getAttribute('data-tags') || '';
+                const matchesSearch = name.includes(query);
+                const matchesFilter = activeFilter === 'all' || tags.includes(activeFilter);
+                if (matchesSearch && matchesFilter) {
+                    card.style.display = '';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+        }
+
+        document.getElementById('eventSearch').addEventListener('input', applyFilters);
+    </script>
+</body>
+</html>

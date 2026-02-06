@@ -3,1297 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Events Admin | TSA Region 11</title>
+    <title>Admin Panel - Region 11 TSA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #f0f6fc;
-            --card: #ffffff;
-            --border: #c5d9f0;
-            --accent: #1a5fb4;
-            --accent-hover: #2670c5;
-            --text: #1a365d;
-            --text-light: #4a6fa5;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #dc2626;
+        .admin-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 20px;
-            line-height: 1.5;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        .subtitle { color: var(--text-light); margin-bottom: 24px; }
-        
-        .toolbar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-danger { background: var(--error); color: white; }
-        .btn-secondary { background: var(--border); color: var(--text); }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 16px; }
-        
-        .event-card {
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.2s;
-        }
-        .event-card:hover { box-shadow: 0 4px 12px rgba(26,95,180,0.15); }
-        .event-card.status-in_progress { border-left: 4px solid var(--success); }
-        .event-card.status-delayed { border-left: 4px solid var(--warning); }
-        .event-card.status-cancelled { border-left: 4px solid var(--error); opacity: 0.7; }
-        .event-card.status-completed { border-left: 4px solid #9ca3af; opacity: 0.7; }
-        
-        .event-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
-        .event-name { font-size: 16px; font-weight: 600; }
-        .event-id { font-size: 11px; color: var(--text-light); background: var(--bg); padding: 2px 8px; border-radius: 4px; }
-        
-        .field-group { margin-bottom: 12px; }
-        .field-label { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; margin-bottom: 4px; }
-        .field-row { display: flex; gap: 8px; align-items: center; }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(26,95,180,0.1);
-        }
-        select { cursor: pointer; }
-        textarea { resize: vertical; min-height: 60px; }
-        
-        .status-select { font-weight: 600; }
-        .status-select option[value="in_progress"] { color: var(--success); }
-        .status-select option[value="delayed"] { color: var(--warning); }
-        .status-select option[value="cancelled"] { color: var(--error); }
-        
-        .quick-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
-        .quick-btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .quick-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
-        
-        .save-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            background: var(--success);
-            color: white;
-            border-radius: 8px;
-            font-weight: 600;
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
+        .admin-card {
             background: white;
-            padding: 24px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
         }
-        .modal h2 { margin-bottom: 16px; }
-        .modal .field-group { margin-bottom: 16px; }
-        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
-        
-        .announcements-section { margin-top: 32px; }
-        .announcement-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
+        .admin-card h3 {
+            font-size: 1.2rem;
+            color: #003a8f;
+            margin-bottom: 16px;
+            font-weight: 700;
         }
-        .announcement-card.important { background: #fef3c7; border-color: var(--warning); }
-        .announcement-card input { flex: 1; }
-        .announcement-card select { width: 120px; }
-        
-        .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-        .tab {
-            padding: 10px 20px;
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
             font-weight: 600;
-        }
-        .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-        
-        .section { display: none; }
-        .section.active { display: block; }
-        
-        .calendar-status {
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .calendar-status.connected { border-color: var(--success); background: #ecfdf5; }
-        .calendar-status.disconnected { border-color: var(--warning); background: #fffbeb; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .status-dot.green { background: var(--success); }
-        .status-dot.yellow { background: var(--warning); }
-        
-        .schedule-day { margin-bottom: 24px; }
-        .schedule-day h3 { 
-            font-size: 18px; 
-            margin-bottom: 12px; 
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--accent);
-        }
-        .schedule-event {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .schedule-event:hover { box-shadow: 0 2px 8px rgba(26,95,180,0.1); }
-        .schedule-event .time { 
-            font-weight: 600; 
-            min-width: 100px;
-            color: var(--accent);
-        }
-        .schedule-event .name { flex: 1; font-weight: 500; }
-        .schedule-event .location { color: var(--text-light); min-width: 120px; }
-        .schedule-event .category {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: var(--bg);
-            text-transform: uppercase;
-        }
-        .schedule-event input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        
-        /* Event Overview Grid for Semifinalists */
-        .events-overview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 12px;
-        }
-        .event-overview-card {
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 16px 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .event-overview-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 4px 12px rgba(26,95,180,0.15);
-            transform: translateY(-2px);
-        }
-        .event-overview-card .event-info {
-            flex: 1;
-        }
-        .event-overview-card .event-name {
-            font-weight: 600;
-            font-size: 15px;
+            color: #333;
             margin-bottom: 4px;
         }
-        .event-overview-card .event-type {
-            font-size: 12px;
-            color: var(--text-light);
-            text-transform: uppercase;
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        .event-overview-card .signup-count {
-            background: var(--accent);
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            min-width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #003a8f;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .btn-admin {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-        }
-        .event-overview-card .signup-count.empty {
-            background: var(--border);
-            color: var(--text-light);
-        }
-        .event-overview-card .signup-count.has-signups {
-            background: var(--success);
-        }
-        
-        /* Division Tabs for Admin */
-        .division-tabs-admin {
-            display: flex;
             gap: 8px;
-            margin-bottom: 16px;
-        }
-        .division-tab-admin {
             padding: 10px 24px;
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            font-size: 0.9rem;
             font-weight: 600;
-            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
             transition: all 0.2s;
         }
-        .division-tab-admin:hover {
-            border-color: var(--accent);
-        }
-        .division-tab-admin.active {
-            background: var(--accent);
+        .btn-submit {
+            background: #003a8f;
             color: white;
-            border-color: var(--accent);
         }
-        
-        /* Toggle Switch */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 56px;
-            height: 30px;
+        .btn-submit:hover {
+            background: #002a6f;
         }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .btn-delete {
+            background: #ff1744;
+            color: white;
+            padding: 6px 14px;
+            font-size: 0.8rem;
         }
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .3s;
-            border-radius: 30px;
+        .btn-delete:hover {
+            background: #d50000;
         }
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
+        .existing-list {
+            margin-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            padding-top: 16px;
         }
-        input:checked + .toggle-slider {
-            background-color: var(--success);
-        }
-        input:checked + .toggle-slider:before {
-            transform: translateX(26px);
-        }
-        
-        /* Signup Cards */
-        .signup-card {
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-        .signup-card:hover {
-            box-shadow: 0 2px 8px rgba(26,95,180,0.1);
-        }
-        .signup-header {
+        .existing-item {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 8px;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
         }
-        .signup-name {
-            font-weight: 600;
-            font-size: 16px;
+        .existing-item:last-child {
+            border-bottom: none;
         }
-        .signup-school {
-            color: var(--text-light);
-            font-size: 14px;
+        .existing-item-info h4 {
+            font-size: 0.95rem;
+            color: #003a8f;
+            margin-bottom: 4px;
         }
-        .signup-events {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
+        .existing-item-info p {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
         }
-        .signup-event-tag {
-            background: var(--accent);
+        .override-badge {
+            display: inline-block;
+            background: #ff1744;
             color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
         }
-        .signup-meta {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-top: 8px;
-        }
-        
-        /* Mobile Responsive */
         @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            
-            h1 {
-                font-size: 20px;
-            }
-            
-            .subtitle {
-                font-size: 14px;
-                margin-bottom: 16px;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-            
-            .tab {
-                padding: 8px 12px;
-                font-size: 13px;
-                flex: 1;
-                text-align: center;
-                min-width: 100px;
-            }
-            
-            .toolbar {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .toolbar .btn {
-                width: 100%;
-                text-align: center;
-            }
-            
-            .grid {
+            .form-row {
                 grid-template-columns: 1fr;
-            }
-            
-            .event-card {
-                padding: 14px;
-            }
-            
-            .event-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-            }
-            
-            .field-row {
-                flex-direction: column;
-            }
-            
-            .quick-actions {
-                flex-direction: column;
-            }
-            
-            .quick-btn {
-                width: 100%;
-                text-align: center;
-                padding: 10px;
-            }
-            
-            /* Schedule section mobile */
-            .calendar-status {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-            
-            .schedule-event {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-                padding: 12px;
-            }
-            
-            .schedule-event .time {
-                min-width: auto;
-            }
-            
-            .schedule-event .location {
-                min-width: auto;
-            }
-            
-            .schedule-event input[type="checkbox"] {
-                position: absolute;
-                right: 12px;
-                top: 12px;
-            }
-            
-            .schedule-event {
-                position: relative;
-                padding-right: 40px;
-            }
-            
-            /* Announcements mobile */
-            .announcement-card {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            
-            .announcement-card input[style*="width:80px"] {
-                width: 100% !important;
-            }
-            
-            .announcement-card select {
-                width: 100%;
-            }
-            
-            /* Modal mobile */
-            .modal-content {
-                width: 95%;
-                padding: 16px;
-                max-height: 90vh;
-            }
-            
-            .modal-actions {
-                flex-direction: column;
-            }
-            
-            .modal-actions .btn {
-                width: 100%;
-            }
-        }
-        
-        @media (max-width: 400px) {
-            .tab {
-                font-size: 11px;
-                padding: 6px 8px;
-            }
-            
-            .btn {
-                font-size: 13px;
-                padding: 8px 12px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎛️ Live Events Control Panel</h1>
-        <p class="subtitle">Edit events in real-time. Changes save automatically and appear instantly on the live board.</p>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="showSection('events')">📋 Live Events</div>
-            <div class="tab" onclick="showSection('schedule')">📅 Schedule (Calendar)</div>
-            <div class="tab" onclick="showSection('announcements')">📢 Announcements</div>
-            <div class="tab" onclick="showSection('semifinalists')">🏆 Semifinalists</div>
-            <div class="tab" onclick="showSection('settings')">⚙️ Settings</div>
-        </div>
-        
-        <div class="toolbar">
-            <button class="btn btn-primary" onclick="openAddModal()">➕ Add Event</button>
-            <button class="btn btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
-            <a href="/live" target="_blank" class="btn btn-secondary">👁️ View Live Board</a>
-            <a href="/schedule" target="_blank" class="btn btn-secondary">📅 View Schedule</a>
-        </div>
-        
-        <div id="events-section" class="section active">
-            <div class="grid" id="events-grid"></div>
-        </div>
-        
-        <div id="schedule-section" class="section">
-            <div id="calendar-status" class="calendar-status">
-                <div class="status-dot"></div>
-                <span id="calendar-status-text">Checking calendar connection...</span>
+    <section class="hero hero-short">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Admin Panel</h1>
+            <p class="hero-school">Region 11 TSA Regionals 2026</p>
+            <div class="hero-buttons">
+                <a href="/" class="btn btn-white">
+                    <span class="btn-dot btn-dot-blue"></span> Home
+                </a>
+                <a href="/schedule" class="btn btn-orange">
+                    <span class="btn-dot btn-dot-red"></span> Schedule
+                </a>
+                <a href="/" class="btn btn-white" style="border: 2px solid rgba(255,255,255,0.5);">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
-            <div class="toolbar">
-                <button class="btn btn-primary" onclick="importSelectedToLive()">📥 Import Selected to Live Board</button>
-                <button class="btn btn-secondary" onclick="selectAllSchedule()">☑️ Select All</button>
-                <button class="btn btn-secondary" onclick="deselectAllSchedule()">☐ Deselect All</button>
-                <button class="btn btn-secondary" onclick="loadSchedule()">🔄 Refresh from Calendar</button>
-            </div>
-            <div id="schedule-content"></div>
         </div>
-        
-        <div id="announcements-section" class="section">
-            <div class="toolbar">
-                <button class="btn btn-primary" onclick="addAnnouncement()">➕ Add Announcement</button>
-            </div>
-            <div id="announcements-list"></div>
-        </div>
+    </section>
 
-        <div id="semifinalists-section" class="section">
-            <!-- Events Overview -->
-            <div id="events-overview">
-                <div class="toolbar">
-                    <button class="btn btn-secondary" onclick="loadSignups()">🔄 Refresh</button>
-                    <button class="btn btn-primary" onclick="exportSignups()">📥 Export All CSV</button>
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <div class="division-tabs-admin">
-                        <button class="division-tab-admin active" onclick="switchSignupDivision('hs', this)">🎓 High School</button>
-                        <button class="division-tab-admin" onclick="switchSignupDivision('ms', this)">📚 Middle School</button>
-                    </div>
-                </div>
-                
-                <div id="hs-events-grid" class="events-overview-grid"></div>
-                <div id="ms-events-grid" class="events-overview-grid" style="display: none;"></div>
-            </div>
-            
-            <!-- Event Detail View (hidden by default) -->
-            <div id="event-detail-view" style="display: none;">
-                <div class="toolbar">
-                    <button class="btn btn-secondary" onclick="backToEventsOverview()">← Back to Events</button>
-                    <button class="btn btn-primary" onclick="exportEventSignups()">📥 Export Event CSV</button>
-                </div>
-                <div id="event-detail-header" style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                    <h2 id="event-detail-title" style="margin: 0;"></h2>
-                    <p id="event-detail-count" style="color: var(--text-light); margin: 8px 0 0 0;"></p>
-                </div>
-                <div id="event-signups-list"></div>
-            </div>
-        </div>
+    <section class="info-section">
+        <div class="admin-section">
 
-        <div id="settings-section" class="section">
-            <div style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 24px; max-width: 600px;">
-                <h2 style="margin-bottom: 20px;">⚙️ Page Visibility Settings</h2>
-                
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
-                    <div>
-                        <div style="font-weight: 600; font-size: 16px;">🏆 Semifinalist Sign-Up Page</div>
-                        <div style="color: var(--text-light); font-size: 13px; margin-top: 4px;">Allow participants to sign up for semifinal presentations</div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="semifinalist-toggle" onchange="toggleSemifinalist()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                
-                <div id="semifinalist-link" style="display: none; background: #ecfdf5; border: 2px solid var(--success); border-radius: 8px; padding: 16px; margin-top: 16px;">
-                    <div style="font-weight: 600; color: var(--success); margin-bottom: 8px;">✓ Page is VISIBLE</div>
-                    <div style="font-size: 14px; color: var(--text-light);">
-                        Public link: <a href="/semifinalists" target="_blank" style="color: var(--accent);">/semifinalists</a>
-                    </div>
-                </div>
-                
-                <div id="semifinalist-hidden" style="background: #fef3c7; border: 2px solid var(--warning); border-radius: 8px; padding: 16px; margin-top: 16px;">
-                    <div style="font-weight: 600; color: var(--warning); margin-bottom: 8px;">⚠️ Page is HIDDEN</div>
-                    <div style="font-size: 14px; color: var(--text-light);">
-                        Visitors will be redirected to the home page.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="save-indicator" id="save-indicator">✓ Saved!</div>
-    
-    <!-- Add Event Modal -->
-    <div class="modal" id="add-modal">
-        <div class="modal-content">
-            <h2>Add New Event</h2>
-            <div class="field-group">
-                <div class="field-label">Event Name</div>
-                <input type="text" id="new-event-name" placeholder="e.g., Robotics Challenge">
-            </div>
-            <div class="field-group">
-                <div class="field-label">Location</div>
-                <input type="text" id="new-event-location" placeholder="e.g., Gymnasium">
-            </div>
-            <div class="field-group">
-                <div class="field-label">Scheduled Time</div>
-                <input type="text" id="new-event-time" placeholder="e.g., 10:00 AM">
-            </div>
-            <div class="field-group">
-                <div class="field-label">Participants</div>
-                <input type="number" id="new-event-participants" placeholder="e.g., 50">
-            </div>
-            <div class="field-group">
-                <div class="field-label">Notes</div>
-                <textarea id="new-event-notes" placeholder="e.g., Setup begins at 9:30 AM"></textarea>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="addEvent()">Add Event</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        let eventsData = { events: [], announcements: [] };
-        let settingsData = { semifinalist_signup_visible: false };
-        let signupsData = [];
-        
-        // Load events on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadEvents();
-            loadSettings();
-        });
-        
-        async function loadEvents() {
-            try {
-                const response = await fetch('/api/admin/events');
-                eventsData = await response.json();
-                renderEvents();
-                renderAnnouncements();
-            } catch (err) {
-                console.error('Failed to load events:', err);
-            }
-        }
-        
-        async function loadSettings() {
-            try {
-                const response = await fetch('/api/admin/settings');
-                settingsData = await response.json();
-                document.getElementById('semifinalist-toggle').checked = settingsData.semifinalist_signup_visible;
-                updateSettingsUI();
-            } catch (err) {
-                console.error('Failed to load settings:', err);
-            }
-        }
-        
-        function updateSettingsUI() {
-            const isVisible = settingsData.semifinalist_signup_visible;
-            document.getElementById('semifinalist-link').style.display = isVisible ? 'block' : 'none';
-            document.getElementById('semifinalist-hidden').style.display = isVisible ? 'none' : 'block';
-        }
-        
-        async function toggleSemifinalist() {
-            settingsData.semifinalist_signup_visible = document.getElementById('semifinalist-toggle').checked;
-            updateSettingsUI();
-            
-            try {
-                await fetch('/api/admin/settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(settingsData)
-                });
-                showSaveIndicator();
-            } catch (err) {
-                console.error('Failed to save settings:', err);
-            }
-        }
-        
-        async function loadSignups() {
-            try {
-                const [signupsRes, eventsRes] = await Promise.all([
-                    fetch('/api/admin/semifinalist-signups'),
-                    fetch('/api/admin/semifinal-events')
-                ]);
-                signupsData = await signupsRes.json();
-                semifinalEventsData = await eventsRes.json();
-                renderEventsOverview();
-            } catch (err) {
-                console.error('Failed to load signups:', err);
-            }
-        }
-        
-        let semifinalEventsData = { hs: { individual: [], team: [] }, ms: { individual: [], team: [] } };
-        let currentSignupDivision = 'hs';
-        let currentEventView = null;
-        
-        function switchSignupDivision(division, btn) {
-            currentSignupDivision = division;
-            document.querySelectorAll('.division-tab-admin').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            
-            document.getElementById('hs-events-grid').style.display = division === 'hs' ? 'grid' : 'none';
-            document.getElementById('ms-events-grid').style.display = division === 'ms' ? 'grid' : 'none';
-        }
-        
-        function getSignupCountForEvent(eventName) {
-            return signupsData.filter(s => s.events && s.events.includes(eventName)).length;
-        }
-        
-        function renderEventsOverview() {
-            // Render High School events
-            const hsGrid = document.getElementById('hs-events-grid');
-            const hsEvents = [
-                ...semifinalEventsData.hs.individual.map(e => ({ name: e, type: 'Individual' })),
-                ...semifinalEventsData.hs.team.map(e => ({ name: e, type: 'Team' }))
-            ];
-            
-            hsGrid.innerHTML = hsEvents.map(event => {
-                const count = getSignupCountForEvent(event.name);
-                return `
-                    <div class="event-overview-card" onclick="showEventDetail('${event.name.replace(/'/g, "\\'")}')">
-                        <div class="event-info">
-                            <div class="event-name">${event.name}</div>
-                            <div class="event-type">${event.type}</div>
+            <!-- ANNOUNCEMENTS -->
+            <div class="admin-card">
+                <h3><i class="fas fa-bullhorn"></i> Post Announcement</h3>
+                <form method="POST" action="/admin/announcement">
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Title (optional)</label>
+                            <input type="text" name="title" placeholder="e.g. Schedule Update">
                         </div>
-                        <div class="signup-count ${count > 0 ? 'has-signups' : 'empty'}">${count}</div>
-                    </div>
-                `;
-            }).join('') || '<p style="color: var(--text-light); padding: 20px;">No events configured.</p>';
-            
-            // Render Middle School events
-            const msGrid = document.getElementById('ms-events-grid');
-            const msEvents = [
-                ...semifinalEventsData.ms.individual.map(e => ({ name: e, type: 'Individual' })),
-                ...semifinalEventsData.ms.team.map(e => ({ name: e, type: 'Team' }))
-            ];
-            
-            msGrid.innerHTML = msEvents.map(event => {
-                const count = getSignupCountForEvent(event.name);
-                return `
-                    <div class="event-overview-card" onclick="showEventDetail('${event.name.replace(/'/g, "\\'")}')">
-                        <div class="event-info">
-                            <div class="event-name">${event.name}</div>
-                            <div class="event-type">${event.type}</div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select name="level">
+                                <option value="info">ℹ️ Info</option>
+                                <option value="warning">⚠️ Warning</option>
+                                <option value="urgent">🚨 Urgent</option>
+                                <option value="success">✅ Success</option>
+                            </select>
                         </div>
-                        <div class="signup-count ${count > 0 ? 'has-signups' : 'empty'}">${count}</div>
                     </div>
-                `;
-            }).join('') || '<p style="color: var(--text-light); padding: 20px;">No events configured.</p>';
-        }
-        
-        function showEventDetail(eventName) {
-            currentEventView = eventName;
-            document.getElementById('events-overview').style.display = 'none';
-            document.getElementById('event-detail-view').style.display = 'block';
-            
-            const eventSignups = signupsData.filter(s => s.events && s.events.includes(eventName));
-            
-            document.getElementById('event-detail-title').textContent = '🏆 ' + eventName;
-            document.getElementById('event-detail-count').textContent = `${eventSignups.length} signup${eventSignups.length !== 1 ? 's' : ''}`;
-            
-            const list = document.getElementById('event-signups-list');
-            if (eventSignups.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-light); padding: 20px; background: var(--card); border-radius: 8px;">No sign-ups for this event yet.</p>';
-                return;
-            }
-            
-            list.innerHTML = eventSignups.map(signup => `
-                <div class="signup-card">
-                    <div class="signup-header">
-                        <div>
-                            <div class="signup-name">${signup.name}</div>
-                            <div class="signup-school">${signup.school}</div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" placeholder="Type your announcement here..." required style="min-height:70px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-admin btn-submit">
+                        <i class="fas fa-paper-plane"></i> Post Announcement
+                    </button>
+                </form>
+
+                {% if data.announcements %}
+                <div class="existing-list">
+                    <h4 style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Active Announcements:</h4>
+                    {% for ann in data.announcements %}
+                    <div class="existing-item">
+                        <div class="existing-item-info">
+                            <h4>{% if ann.title %}{{ ann.title }} · {% endif %}{{ ann.time }}
+                                <span class="override-badge" style="background: {{ '#1565c0' if ann.level == 'info' else '#ef6c00' if ann.level == 'warning' else '#c62828' if ann.level == 'urgent' else '#2e7d32' }};">{{ ann.level|upper }}</span>
+                            </h4>
+                            <p>{{ ann.message }}</p>
                         </div>
-                        <button class="quick-btn" onclick="deleteSignup(${signup.id})" style="color:var(--error)">🗑️</button>
+                        <form method="POST" action="/admin/announcement/delete" style="flex-shrink:0; margin-left:12px;">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="index" value="{{ loop.index0 }}">
+                            <button type="submit" class="btn-admin btn-delete">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </form>
                     </div>
-                    <div class="signup-meta">
-                        📧 ${signup.email} ${signup.phone ? '• 📞 ' + signup.phone : ''}<br>
-                        🕐 ${new Date(signup.submitted_at).toLocaleString()}
-                        ${signup.notes ? '<br>📝 ' + signup.notes : ''}
-                    </div>
+                    {% endfor %}
                 </div>
-            `).join('');
-        }
-        
-        function backToEventsOverview() {
-            currentEventView = null;
-            document.getElementById('events-overview').style.display = 'block';
-            document.getElementById('event-detail-view').style.display = 'none';
-            renderEventsOverview();
-        }
-        
-        function renderSignups() {
-            // Legacy function - now handled by renderEventsOverview
-            renderEventsOverview();
-        }
-        
-        async function deleteSignup(id) {
-            if (confirm('Delete this sign-up?')) {
-                try {
-                    await fetch(`/api/admin/semifinalist-signups/${id}`, { method: 'DELETE' });
-                    // Reload and refresh current view
-                    const response = await fetch('/api/admin/semifinalist-signups');
-                    signupsData = await response.json();
-                    
-                    if (currentEventView) {
-                        showEventDetail(currentEventView);
-                    } else {
-                        renderEventsOverview();
-                    }
-                    showSaveIndicator();
-                } catch (err) {
-                    console.error('Failed to delete signup:', err);
-                }
-            }
-        }
-        
-        function exportSignups() {
-            if (signupsData.length === 0) {
-                alert('No sign-ups to export.');
-                return;
-            }
-            
-            const headers = ['ID', 'Name', 'School', 'Email', 'Phone', 'Events', 'Division', 'Notes', 'Submitted At'];
-            const rows = signupsData.map(s => [
-                s.id,
-                s.name,
-                s.school,
-                s.email,
-                s.phone || '',
-                s.events.join('; '),
-                s.division || '',
-                s.notes || '',
-                s.submitted_at
-            ]);
-            
-            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'semifinalist_signups.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        function exportEventSignups() {
-            if (!currentEventView) return;
-            
-            const eventSignups = signupsData.filter(s => s.events && s.events.includes(currentEventView));
-            if (eventSignups.length === 0) {
-                alert('No sign-ups to export for this event.');
-                return;
-            }
-            
-            const headers = ['ID', 'Name', 'School', 'Email', 'Phone', 'Notes', 'Submitted At'];
-            const rows = eventSignups.map(s => [
-                s.id,
-                s.name,
-                s.school,
-                s.email,
-                s.phone || '',
-                s.notes || '',
-                s.submitted_at
-            ]);
-            
-            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${currentEventView.replace(/[^a-z0-9]/gi, '_')}_signups.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        function renderEvents() {
-            const grid = document.getElementById('events-grid');
-            grid.innerHTML = eventsData.events.map(event => `
-                <div class="event-card status-${event.status}" data-id="${event.id}">
-                    <div class="event-header">
-                        <div class="event-name">${event.event}</div>
-                        <span class="event-id">${event.id}</span>
-                    </div>
-                    
-                    <div class="field-group">
-                        <div class="field-label">Status</div>
-                        <select class="status-select" onchange="updateEvent('${event.id}', 'status', this.value)">
-                            <option value="upcoming" ${event.status === 'upcoming' ? 'selected' : ''}>📅 Upcoming</option>
-                            <option value="starting_soon" ${event.status === 'starting_soon' ? 'selected' : ''}>⏰ Starting Soon</option>
-                            <option value="in_progress" ${event.status === 'in_progress' ? 'selected' : ''}>🟢 In Progress</option>
-                            <option value="judging" ${event.status === 'judging' ? 'selected' : ''}>📝 Judging</option>
-                            <option value="on_break" ${event.status === 'on_break' ? 'selected' : ''}>☕ On Break</option>
-                            <option value="delayed" ${event.status === 'delayed' ? 'selected' : ''}>⚠️ Delayed</option>
-                            <option value="room_change" ${event.status === 'room_change' ? 'selected' : ''}>📍 Room Change</option>
-                            <option value="cancelled" ${event.status === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
-                            <option value="completed" ${event.status === 'completed' ? 'selected' : ''}>✓ Completed</option>
+                {% endif %}
+            </div>
+
+            <!-- POST SEMIFINALISTS -->
+            <div class="admin-card">
+                <h3><i class="fas fa-trophy"></i> Post Semifinalists</h3>
+                <form method="POST" action="/admin/semifinalists">
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <div class="form-group">
+                        <label>Event Name</label>
+                        <select name="event_name" required>
+                            <option value="">Select an event...</option>
+                            {% set seen = [] %}
+                            {% for e in events %}
+                                {% if e.name not in seen %}
+                                    {% if seen.append(e.name) %}{% endif %}
+                                    <option value="{{ e.name }}">{{ '🔵 Fri' if e.day == 'friday' else '🟠 Sat' }} — {{ e.name }}</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
                     </div>
-                    
-                    <div class="field-row">
-                        <div class="field-group" style="flex:1">
-                            <div class="field-label">Time</div>
-                            <input type="text" value="${event.scheduled_time}" 
-                                onchange="updateEvent('${event.id}', 'scheduled_time', this.value)">
+                    <div class="form-group">
+                        <label>Teams / Participants (one per line)</label>
+                        <textarea name="teams" placeholder="Team Alpha&#10;Team Beta&#10;Team Gamma" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-admin btn-submit">
+                        <i class="fas fa-upload"></i> Post Semifinalists
+                    </button>
+                </form>
+
+                {% if data.semifinalists %}
+                <div class="existing-list">
+                    <h4 style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Currently Posted:</h4>
+                    {% for event, teams in data.semifinalists.items() %}
+                    <div class="existing-item">
+                        <div class="existing-item-info">
+                            <h4>{{ event }}</h4>
+                            <p>{{ teams | join(', ') }}</p>
                         </div>
-                        <div class="field-group" style="flex:1">
-                            <div class="field-label">New Time (if delayed)</div>
-                            <input type="text" value="${event.new_time || ''}" placeholder="e.g., 10:30 AM"
-                                onchange="updateEvent('${event.id}', 'new_time', this.value || null)">
-                        </div>
+                        <form method="POST" action="/admin/semifinalists/delete" style="flex-shrink:0; margin-left:12px;">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="event_name" value="{{ event }}">
+                            <button type="submit" class="btn-admin btn-delete">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </form>
                     </div>
-                    
-                    <div class="field-row">
-                        <div class="field-group" style="flex:1">
-                            <div class="field-label">Location</div>
-                            <input type="text" value="${event.location}"
-                                onchange="updateEvent('${event.id}', 'location', this.value)">
-                        </div>
-                        <div class="field-group" style="flex:1">
-                            <div class="field-label">New Location (if moved)</div>
-                            <input type="text" value="${event.new_location || ''}" placeholder="e.g., Room 302"
-                                onchange="updateEvent('${event.id}', 'new_location', this.value || null)">
-                        </div>
-                    </div>
-                    
-                    <div class="field-group">
-                        <div class="field-label">Notes (shown on live board)</div>
-                        <textarea onchange="updateEvent('${event.id}', 'notes', this.value)">${event.notes || ''}</textarea>
-                    </div>
-                    
-                    <div class="field-group">
-                        <div class="field-label">Participants</div>
-                        <input type="number" value="${event.participants}"
-                            onchange="updateEvent('${event.id}', 'participants', parseInt(this.value))">
-                    </div>
-                    
-                    <div class="quick-actions">
-                        <button class="quick-btn" onclick="quickDelay('${event.id}', 15)">+15 min delay</button>
-                        <button class="quick-btn" onclick="quickDelay('${event.id}', 30)">+30 min delay</button>
-                        <button class="quick-btn" onclick="quickStatus('${event.id}', 'in_progress')">▶ Start</button>
-                        <button class="quick-btn" onclick="quickStatus('${event.id}', 'completed')">✓ Complete</button>
-                        <button class="quick-btn" onclick="deleteEvent('${event.id}')" style="color:var(--error)">🗑️ Delete</button>
-                    </div>
+                    {% endfor %}
                 </div>
-            `).join('');
-        }
-        
-        function renderAnnouncements() {
-            const list = document.getElementById('announcements-list');
-            list.innerHTML = eventsData.announcements.map((a, index) => `
-                <div class="announcement-card ${a.priority === 'important' ? 'important' : ''}">
-                    <input type="text" value="${a.time}" style="width:80px" 
-                        onchange="updateAnnouncement(${index}, 'time', this.value)">
-                    <input type="text" value="${a.message}" 
-                        onchange="updateAnnouncement(${index}, 'message', this.value)">
-                    <select onchange="updateAnnouncement(${index}, 'priority', this.value)">
-                        <option value="normal" ${a.priority === 'normal' ? 'selected' : ''}>Normal</option>
-                        <option value="important" ${a.priority === 'important' ? 'selected' : ''}>🚨 Important</option>
-                    </select>
-                    <button class="quick-btn" onclick="deleteAnnouncement(${index})" style="color:var(--error)">🗑️</button>
+                {% endif %}
+            </div>
+
+            <!-- SCHEDULE OVERRIDES -->
+            <div class="admin-card">
+                <h3><i class="fas fa-clock"></i> Override Event Time / Room</h3>
+                <p style="font-size: 0.8rem; color: #888; margin-bottom: 14px;">
+                    Changes will show as "DELAYED" on the schedule with the old time crossed out.
+                    Leave fields blank to keep the original value.
+                </p>
+                <form method="POST" action="/admin/override">
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <div class="form-group">
+                        <label>Event</label>
+                        <select name="event_name" id="eventSelect" required>
+                            <option value="">Select an event...</option>
+                            {% for e in events %}
+                            <option value="{{ e.name }}" data-day="{{ e.day }}" data-room="{{ e.room }}" data-start="{{ e.start }}" data-end="{{ e.end }}">
+                                {{ '🔵 Fri' if e.day == 'friday' else '🟠 Sat' }} — {{ e.name }} ({{ e.room }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" name="day" id="dayInput">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>New Start Time</label>
+                            <input type="text" name="new_start" placeholder="e.g. 9:30 AM">
+                        </div>
+                        <div class="form-group">
+                            <label>New End Time</label>
+                            <input type="text" name="new_end" placeholder="e.g. 11:00 AM">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>New Room</label>
+                        <input type="text" name="new_room" placeholder="e.g. D1425">
+                    </div>
+                    <button type="submit" class="btn-admin btn-submit">
+                        <i class="fas fa-save"></i> Save Override
+                    </button>
+                </form>
+
+                {% if data.overrides %}
+                <div class="existing-list">
+                    <h4 style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Active Overrides:</h4>
+                    {% for key, ov in data.overrides.items() %}
+                    {% set parts = key.split('::') %}
+                    <div class="existing-item">
+                        <div class="existing-item-info">
+                            <h4>{{ parts[1] }} <span class="override-badge">DELAYED</span></h4>
+                            <p>
+                                {{ 'Friday' if parts[0] == 'friday' else 'Saturday' }}
+                                {% if ov.new_start %} · New Start: {{ ov.new_start }}{% endif %}
+                                {% if ov.new_end %} · New End: {{ ov.new_end }}{% endif %}
+                                {% if ov.new_room %} · New Room: {{ ov.new_room }}{% endif %}
+                            </p>
+                        </div>
+                        <form method="POST" action="/admin/override/delete" style="flex-shrink:0; margin-left:12px;">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="key" value="{{ key }}">
+                            <button type="submit" class="btn-admin btn-delete">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
                 </div>
-            `).join('');
-        }
-        
-        async function updateEvent(id, field, value) {
-            const event = eventsData.events.find(e => e.id === id);
-            if (event) {
-                event[field] = value;
-                // Auto-update status_text based on status
-                if (field === 'status') {
-                    const statusTexts = {
-                        'upcoming': 'On Schedule',
-                        'starting_soon': 'Starting Soon',
-                        'in_progress': 'In Progress',
-                        'judging': 'Judging',
-                        'on_break': 'On Break',
-                        'delayed': 'Delayed',
-                        'room_change': 'Room Change',
-                        'cancelled': 'Cancelled',
-                        'completed': 'Completed'
-                    };
-                    event.status_text = statusTexts[value] || value;
-                }
-                await saveEvents();
-                renderEvents();
-            }
-        }
-        
-        function quickDelay(id, minutes) {
-            const event = eventsData.events.find(e => e.id === id);
-            if (event) {
-                // Parse current time and add delay
-                const timeParts = event.scheduled_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                if (timeParts) {
-                    let hours = parseInt(timeParts[1]);
-                    let mins = parseInt(timeParts[2]);
-                    const period = timeParts[3].toUpperCase();
-                    
-                    if (period === 'PM' && hours !== 12) hours += 12;
-                    if (period === 'AM' && hours === 12) hours = 0;
-                    
-                    mins += minutes;
-                    hours += Math.floor(mins / 60);
-                    mins = mins % 60;
-                    
-                    const newPeriod = hours >= 12 ? 'PM' : 'AM';
-                    hours = hours % 12 || 12;
-                    
-                    event.new_time = `${hours}:${mins.toString().padStart(2, '0')} ${newPeriod}`;
-                    event.status = 'delayed';
-                    event.status_text = 'Delayed';
-                    event.alert = { type: 'delay', message: `⏰ Delayed ${minutes} min` };
-                    saveEvents();
-                    renderEvents();
-                }
-            }
-        }
-        
-        function quickStatus(id, status) {
-            updateEvent(id, 'status', status);
-        }
-        
-        async function deleteEvent(id) {
-            if (confirm('Delete this event?')) {
-                eventsData.events = eventsData.events.filter(e => e.id !== id);
-                await saveEvents();
-                renderEvents();
-            }
-        }
-        
-        async function updateAnnouncement(index, field, value) {
-            eventsData.announcements[index][field] = value;
-            await saveEvents();
-            renderAnnouncements();
-        }
-        
-        function addAnnouncement() {
-            const now = new Date();
-            const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-            eventsData.announcements.unshift({
-                id: Date.now(),
-                time: time,
-                message: 'New announcement',
-                priority: 'normal'
-            });
-            saveEvents();
-            renderAnnouncements();
-        }
-        
-        async function deleteAnnouncement(index) {
-            eventsData.announcements.splice(index, 1);
-            await saveEvents();
-            renderAnnouncements();
-        }
-        
-        async function saveEvents() {
-            try {
-                await fetch('/api/admin/events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(eventsData)
-                });
-                showSaveIndicator();
-            } catch (err) {
-                console.error('Failed to save:', err);
-            }
-        }
-        
-        function showSaveIndicator() {
-            const indicator = document.getElementById('save-indicator');
-            indicator.style.display = 'block';
-            setTimeout(() => { indicator.style.display = 'none'; }, 1500);
-        }
-        
-        function showSection(section) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(section + '-section').classList.add('active');
-            
-            // Load data when switching to relevant tabs
-            if (section === 'schedule') {
-                loadSchedule();
-            } else if (section === 'semifinalists') {
-                loadSignups();
-            } else if (section === 'settings') {
-                loadSettings();
-            }
-        }
-        
-        // ============== SCHEDULE / CALENDAR FUNCTIONS ==============
-        let scheduleData = {};
-        
-        async function loadSchedule() {
-            try {
-                const response = await fetch('/api/admin/schedule');
-                const data = await response.json();
-                scheduleData = data.schedule;
-                
-                // Update calendar status
-                const statusEl = document.getElementById('calendar-status');
-                const statusText = document.getElementById('calendar-status-text');
-                const statusDot = statusEl.querySelector('.status-dot');
-                
-                if (data.calendar_status.connected) {
-                    statusEl.classList.remove('disconnected');
-                    statusEl.classList.add('connected');
-                    statusDot.classList.remove('yellow');
-                    statusDot.classList.add('green');
-                    statusText.textContent = '✓ Google Calendar Connected: ' + (data.calendar_status.url || 'Configured');
-                } else {
-                    statusEl.classList.remove('connected');
-                    statusEl.classList.add('disconnected');
-                    statusDot.classList.remove('green');
-                    statusDot.classList.add('yellow');
-                    statusText.textContent = '⚠️ No Google Calendar configured - showing fallback schedule. Add ICS URL in app.py';
-                }
-                
-                renderSchedule();
-            } catch (err) {
-                console.error('Failed to load schedule:', err);
-            }
-        }
-        
-        function renderSchedule() {
-            const container = document.getElementById('schedule-content');
-            let html = '';
-            
-            for (const [day, events] of Object.entries(scheduleData)) {
-                html += `<div class="schedule-day">
-                    <h3>📅 ${day}</h3>`;
-                
-                events.forEach((event, index) => {
-                    const eventKey = `${day}-${index}`;
-                    html += `
-                    <div class="schedule-event" data-key="${eventKey}">
-                        <input type="checkbox" class="schedule-checkbox" data-day="${day}" data-index="${index}">
-                        <span class="time">${event.time}${event.end_time ? ' - ' + event.end_time : ''}</span>
-                        <span class="name">${event.event}</span>
-                        <span class="location">📍 ${event.location}</span>
-                        <span class="category">${event.category || 'general'}</span>
-                    </div>`;
-                });
-                
-                html += '</div>';
-            }
-            
-            container.innerHTML = html || '<p>No schedule events found.</p>';
-        }
-        
-        function selectAllSchedule() {
-            document.querySelectorAll('.schedule-checkbox').forEach(cb => cb.checked = true);
-        }
-        
-        function deselectAllSchedule() {
-            document.querySelectorAll('.schedule-checkbox').forEach(cb => cb.checked = false);
-        }
-        
-        async function importSelectedToLive() {
-            const selected = [];
-            document.querySelectorAll('.schedule-checkbox:checked').forEach(cb => {
-                const day = cb.dataset.day;
-                const index = parseInt(cb.dataset.index);
-                if (scheduleData[day] && scheduleData[day][index]) {
-                    selected.push(scheduleData[day][index]);
-                }
-            });
-            
-            if (selected.length === 0) {
-                alert('Please select at least one event to import.');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/admin/import-to-live', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ events: selected })
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    showSaveIndicator();
-                    alert(result.message);
-                    // Reload live events
-                    await loadEvents();
-                    // Uncheck all
-                    deselectAllSchedule();
-                } else {
-                    alert('Error: ' + result.error);
-                }
-            } catch (err) {
-                console.error('Import failed:', err);
-                alert('Failed to import events.');
-            }
-        }
-        
-        // ============== MODAL FUNCTIONS ==============
-        
-        function openAddModal() {
-            document.getElementById('add-modal').classList.add('active');
-        }
-        
-        function closeModal() {
-            document.getElementById('add-modal').classList.remove('active');
-        }
-        
-        async function addEvent() {
-            const newEvent = {
-                id: 'EVT' + Date.now().toString().slice(-6),
-                event: document.getElementById('new-event-name').value,
-                location: document.getElementById('new-event-location').value,
-                scheduled_time: document.getElementById('new-event-time').value,
-                new_time: null,
-                new_location: null,
-                status: 'upcoming',
-                status_text: 'On Schedule',
-                participants: parseInt(document.getElementById('new-event-participants').value) || 0,
-                notes: document.getElementById('new-event-notes').value,
-                alert: null
-            };
-            
-            eventsData.events.push(newEvent);
-            await saveEvents();
-            renderEvents();
-            closeModal();
-            
-            // Clear form
-            document.getElementById('new-event-name').value = '';
-            document.getElementById('new-event-location').value = '';
-            document.getElementById('new-event-time').value = '';
-            document.getElementById('new-event-participants').value = '';
-            document.getElementById('new-event-notes').value = '';
-        }
-        
-        // Close modal on outside click
-        document.getElementById('add-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
+                {% endif %}
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        document.getElementById('eventSelect').addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            document.getElementById('dayInput').value = opt.dataset.day || '';
         });
     </script>
 </body>

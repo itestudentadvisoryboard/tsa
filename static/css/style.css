@@ -1,0 +1,329 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #005bbf;
+    color: #333;
+    min-height: 100vh;
+}
+
+/* ========== HERO SECTION ========== */
+.hero {
+    position: relative;
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    overflow: hidden;
+    background: url('/static/images/school.jpg') center/cover no-repeat;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 70, 170, 0.5);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 60px 20px;
+    max-width: 700px;
+}
+
+/* Fading stacked title */
+.title-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 0.95;
+    margin-bottom: 24px;
+}
+
+.title-line {
+    display: block;
+    font-size: 3.4rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: white;
+}
+
+.line-1 { opacity: 1; }
+.line-2 { opacity: 0.6; }
+.line-3 { opacity: 0.35; }
+.line-4 { opacity: 0.18; }
+.line-5 { opacity: 0.07; }
+
+.hero-welcome {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    opacity: 0.95;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 14px;
+    text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+}
+
+.hero-school {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.hero-details {
+    font-size: 0.95rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-bottom: 32px;
+}
+
+/* ========== HERO BUTTONS ========== */
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    border-radius: 50px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-white {
+    background: white;
+    color: #003a8f;
+}
+
+.btn-white:hover {
+    background: #f0f4ff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-orange {
+    background: #e65100;
+    color: white;
+}
+
+.btn-orange:hover {
+    background: #bf4400;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.btn-dot-blue {
+    background: #003a8f;
+}
+
+.btn-dot-red {
+    background: #ff1744;
+}
+
+/* Short hero for sub-pages */
+.hero-short {
+    min-height: 320px;
+}
+
+/* ========== INFO SECTION ========== */
+.info-section {
+    background: #005bbf;
+    padding: 50px 20px 70px;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    color: white;
+    font-weight: 700;
+    margin-bottom: 40px;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 3px;
+    background: #ffd600;
+    margin: 10px auto 0;
+    border-radius: 2px;
+}
+
+/* ========== CARDS GRID ========== */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+a.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+a.card-link:hover {
+    border: 2px solid #ffd600;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.red-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    background: #ff1744;
+    border-radius: 50%;
+}
+
+.card h3 {
+    font-size: 1.05rem;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.card p {
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.55;
+    padding-left: 22px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .hero {
+        min-height: auto;
+    }
+
+    .hero-content {
+        padding: 50px 20px;
+    }
+
+    .title-line {
+        font-size: 2.4rem;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    .hero-welcome {
+        font-size: 1.3rem;
+    }
+
+    .hero-school {
+        font-size: 1rem;
+    }
+
+    .hero-details {
+        font-size: 0.9rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn {
+        width: 220px;
+        justify-content: center;
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .card {
+        padding: 18px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .title-line {
+        font-size: 1.8rem;
+        letter-spacing: 1px;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .hero-welcome {
+        font-size: 1.1rem;
+    }
+
+    .section-title {
+        font-size: 1.4rem;
+    }
+
+    .card h3 {
+        font-size: 0.95rem;
+    }
+
+    .card p {
+        font-size: 0.8rem;
+    }
+}
